@@ -48,3 +48,39 @@ exports.create=async(req,res,next)=>{    try {
 } catch (e) {
     next(e)
 }}
+
+exports.editDestination = async (req, res, next) => {
+    try {
+        const destinationId = req.params.id;
+        
+        const updateFields = req.body;
+        
+        const updatedDestination = await Destination.findByIdAndUpdate(destinationId, {$set: updateFields}, {new: true});
+
+        if (!updatedDestination) {
+            return res.status(404).json({message: "Destination Not Found"});
+        }
+        return res.status(200).json(updatedDestination);
+    } catch (e) {
+        next(e);
+    }
+};
+
+
+
+exports.deleteDestination = async (req, res, next) => {
+    try {
+        const destinationId = req.params.id;
+
+        const existingDestination = await Destination.findById(destinationId);
+        if (!existingDestination) {
+            return res.status(404).json({ message: "Destination Not Found" });
+        }
+
+        const deletedDestination = await Destination.findByIdAndDelete(destinationId);
+
+        return res.status(200).json({ message: "Destination deleted successfully" });
+    } catch (e) {
+        next(e);
+    }
+};

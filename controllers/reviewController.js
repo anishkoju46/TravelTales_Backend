@@ -31,3 +31,40 @@ exports.create=async(req,res,next)=>{    try {
 } catch (e) {
     next(e)
 }}
+
+exports.editReview = async (req, res, next) => {
+    try {
+        const reviewId = req.params.id;
+        
+        const updateFields = req.body;
+        
+        const updatedReview = await Review.findByIdAndUpdate(reviewId, {$set: updateFields}, {new: true});
+
+        if (!updatedReview) {
+            return res.status(404).json({message: "Review Not Found"});
+        }
+        return res.status(200).json(updatedReview);
+    } catch (e) {
+        next(e);
+    }
+};
+
+
+
+exports.deleteReview = async (req, res, next) => {
+    try {
+        
+        const reviewId = req.params.id;
+
+        const existingReview = await Review.findById(reviewId);
+        if (!existingReview) {
+            return res.status(404).json({ message: "Review Not Found" });
+        }
+
+        const deletedReview = await Review.findByIdAndDelete(reviewId);
+
+        return res.status(200).json({ message: "Review deleted successfully" });
+    } catch (e) {
+        next(e);
+    }
+};

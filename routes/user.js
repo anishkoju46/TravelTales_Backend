@@ -15,7 +15,13 @@ router.get("/",auth, isAdmin, userControler.fetchUsers)
 
 // })
 
+//mero wala hai
+router.put("/:id", auth, userControler.editUser);
+
 // // POST method on endpoint /users to add a user
 router.post("/",auth, isAdmin, userControler.create)
+
+
+router.delete("/:id", auth, userControler.deleteUser);
 
 module.exports = router

@@ -1,7 +1,7 @@
 
 const router = require("express").Router()
 const destinationController = require("../controllers/destinationController")
-const { auth } = require("../middlewares/authMiddle")
+const { auth, isAdmin } = require("../middlewares/authMiddle")
 // GET method on endpoint /users with paramater id /users/userId
 // to get detail of the user with specific id
 router.get("/:id",auth, destinationController.fetchOneDestination)
@@ -18,7 +18,11 @@ router.get("/",auth, destinationController.fetchDestinations)
 
 // })
 
+router.put("/:id",auth, isAdmin, destinationController.editDestination)
+
 // POST method on endpoint /users to add a user
-router.post("/",auth, destinationController.create)
+router.post("/",auth, isAdmin, destinationController.create)
+
+router.delete("/:id",auth, isAdmin, destinationController.deleteDestination)
 
 module.exports = router

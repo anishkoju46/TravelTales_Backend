@@ -15,7 +15,11 @@ router.get("/",auth, reviewControler.fetchReviews)
 
 // })
 
+router.put("/:id", auth, reviewControler.editReview)
+
 // // POST method on endpoint /users to add a user
 router.post("/",auth, reviewControler.create)
+
+router.delete("/:id", auth, reviewControler.deleteReview)
 
 module.exports = router
