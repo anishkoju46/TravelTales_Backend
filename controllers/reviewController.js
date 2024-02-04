@@ -1,9 +1,11 @@
+const { Destination } = require('../models/destination_model');
 const {Review} = require('../models/review_model');
 
 exports.fetchReviews= async(req,res,next)=>{
     try {
         //const reviews = await Review.find().populate("userId", {path: "User", select: "_id fullName email"})
-        const reviews = await Review.find().populate("user", "_id fullName email").populate("destination", "_id name")
+        const destination = !req.params.id ? {} : {"destination" : req.params.id}
+        const reviews = await Review.find(destination).populate("user", "_id fullName email").populate("destination", "_id name")
         return res.status(200).json(reviews)
     } catch (e) {
         console.log(e)
@@ -14,8 +16,7 @@ exports.fetchReviews= async(req,res,next)=>{
 exports.fetchOneReview=async(req,res,next)=>{
     try {
         const review = await Review.findById(req.params.id)
-    
-      
+        
         return res.status(200).json(review)
     } 
     catch (e) {

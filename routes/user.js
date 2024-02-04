@@ -16,7 +16,7 @@ router.get("/",auth, isAdmin, userControler.fetchUsers)
 // })
 
 //mero wala hai
-router.put("/:id", auth, userControler.editUser);
+router.put("/", auth, userControler.editUser);
 
 // // POST method on endpoint /users to add a user
 router.post("/",auth, isAdmin, userControler.create)

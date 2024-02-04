@@ -4,8 +4,8 @@ const {Destination} = require('../models/destination_model');
 exports.fetchDestinations= async(req,res,next)=>{
     try {
         const destinations = await Destination.find()
-        .populate({path: "reviews", model: "Review", select: {"_id": 1, "review":1, "userId":1}, populate: {path:"userId", model:"User", select:{"_id":1, "fullName":1}}})
-        .populate("category", "_id name")
+        //.populate({path: "reviews", model: "Review", select: {"_id": 1, "review":1, "user":1, "createdAt":1}, populate: {path:"user", model:"User", select:{"_id":1, "fullName":1}}})
+        .populate("category", "_id name").select("-reviews")
         
         return res.status(200).json(destinations)
     } catch (e) {
@@ -43,8 +43,9 @@ exports.fetchOneDestination=async(req,res,next)=>{
 exports.create=async(req,res,next)=>{    try {
     var destination = Destination(req.body)
     await destination.save()
-
-    return res.status(201).json(destination)
+    console.log(destination)
+    const newDestination = await Destination.findById(destination._id.toString()).populate({path: "category", model: "Category",  select:{"_id":1, "name":1}})
+    return res.status(201).json(newDestination)
 } catch (e) {
     next(e)
 }}
@@ -55,11 +56,12 @@ exports.editDestination = async (req, res, next) => {
         
         const updateFields = req.body;
         
-        const updatedDestination = await Destination.findByIdAndUpdate(destinationId, {$set: updateFields}, {new: true});
+        const updatedDestination = await Destination.findByIdAndUpdate(destinationId, {$set: updateFields}, {new: true}).populate({path: "category", model: "Category",  select:{"_id":1, "name":1}},);
 
         if (!updatedDestination) {
             return res.status(404).json({message: "Destination Not Found"});
         }
+        console.log(updatedDestination)
         return res.status(200).json(updatedDestination);
     } catch (e) {
         next(e);

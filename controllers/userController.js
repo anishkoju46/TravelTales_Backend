@@ -51,6 +51,7 @@ exports.create=async(req,res,next)=>{    try {
 
 exports.editUser = async (req, res, next) => {
     try {
+        // console.log(req.body);
         const userId = req.user.id;
         //const userId = await User.findById(req.user.id)
         const updateFields = req.body;
