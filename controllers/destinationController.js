@@ -5,11 +5,11 @@ exports.fetchDestinations= async(req,res,next)=>{
     try {
         const destinations = await Destination.find()
         //.populate({path: "reviews", model: "Review", select: {"_id": 1, "review":1, "user":1, "createdAt":1}, populate: {path:"user", model:"User", select:{"_id":1, "fullName":1}}})
-        .populate("category", "_id name").select("-reviews")
+        .populate("category", "_id name").select("-reviews").sort({views: -1})
         
         return res.status(200).json(destinations)
     } catch (e) {
-        console.log(e)
+        //console.log(e)
         next(e)
     }
 };
