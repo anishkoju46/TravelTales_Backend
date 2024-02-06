@@ -43,7 +43,7 @@ exports.fetchOneDestination=async(req,res,next)=>{
 exports.create=async(req,res,next)=>{    try {
     var destination = Destination(req.body)
     await destination.save()
-    console.log(destination)
+    //console.log(destination)
     const newDestination = await Destination.findById(destination._id.toString()).populate({path: "category", model: "Category",  select:{"_id":1, "name":1}})
     return res.status(201).json(newDestination)
 } catch (e) {

@@ -2,7 +2,7 @@ const {User} = require('../models/user_model');
 
 exports.fetchUsers= async(req,res,next)=>{
     try {
-        const users = await User.find().select("fullName phone info.emailVerfied")
+        const users = await User.find().sort({createdAt: -1}).select("fullName phone email imageUrl createdAt phoneNumber")
         return res.status(200).json(users)
     } catch (e) {
         console.log(e)
