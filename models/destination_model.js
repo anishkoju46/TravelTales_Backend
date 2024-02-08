@@ -11,7 +11,7 @@ const Destination = mongoose.Schema({
     description: { type: String, required: ["description is required", true] },
     itinerary: [{type: String}],
     imageUrl: [{ type: String, required: ["image is required", true] }],
-    rating: { type: Number},
+    rating: { type: Number, default: 0},
     reviews: [{type: mongoose.Types.ObjectId, ref: "Review"}],
     region: { type: String, required: ["region is required", true] },
     bestSeason: { type: String, required: ["bestSeason is required", true] },

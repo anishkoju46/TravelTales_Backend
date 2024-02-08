@@ -4,7 +4,8 @@ const Review = mongoose.Schema({
     review: {type: String},
     user: {type: mongoose.Types.ObjectId, ref:"User"},
     rating: {type: Number},
-    destination: {type: mongoose.Types.ObjectId, ref:"Destination"}
+    destination: {type: mongoose.Types.ObjectId, ref:"Destination"},
+    flag: {type: Boolean, default : false}
 }, { timestamps: true })
 
 Review.pre('save', async function(next) {

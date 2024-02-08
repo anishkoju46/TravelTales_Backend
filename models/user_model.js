@@ -13,7 +13,7 @@ const User = mongoose.Schema({
 }, { timestamps: true })
 
 User.pre('save', async function(next) {
-
+    
     next()
 })
 
