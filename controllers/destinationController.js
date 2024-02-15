@@ -5,7 +5,8 @@ exports.fetchDestinations= async(req,res,next)=>{
     try {
         const destinations = await Destination.find()
         //.populate({path: "reviews", model: "Review", select: {"_id": 1, "review":1, "user":1, "createdAt":1}, populate: {path:"user", model:"User", select:{"_id":1, "fullName":1}}})
-        .populate("category", "_id name").select("-reviews").sort({views: -1})
+        .populate("category", "_id name").select("-reviews")
+        // .sort({views: -1})
         
         return res.status(200).json(destinations)
     } catch (e) {
@@ -13,6 +14,48 @@ exports.fetchDestinations= async(req,res,next)=>{
         next(e)
     }
 };
+
+exports.fetchDestinationNearBy = async(req,res,next)=>{
+   try{
+    const destination = await Destination.aggregate([{$geoNear : {near: {type : "Point", coordinates: [85.4310996415024,27.67300643425992]}, spherical : true, distanceField: "distance"}},
+    // {$lookup : {from : "", localField : "", foreignFeild : ""}},
+    {$project : {_id : 1, name:1, category:1, distance : 1, avgDistance : {$divide : [{$add : ["$distance", {$multiply : ["$distance", Math.sqrt(2)]}]}, 2]}}}])
+
+    return res.status(200).json(destination)
+    
+   }catch(e){
+    next(e)
+   }
+}
+
+// exports.fetchDestinationNearBy = async(req,res,next)=>{
+//    try{
+//     const destination = await Destination.aggregate([{$geoNear : {near: {type : "Point", coordinates: [85.4310996415024,27.67300643425992]}, spherical : true, distanceField: "distance"}}])
+//     return res.status(200).json(destination)
+//    }catch(e){
+//     next(e)
+//    }
+// }
+
+// exports.fetchDestinationNearBy = async(req,res,next)=>{
+//     try{
+//      const destination = await Destination.aggregate([{$geoNear : {near: {type : "Point", coordinates: [85.4310996415024,27.67300643425992]}, spherical : true, distanceField: "distance"}}])
+
+//      if (destination.length > 0){
+//         const avgKM = destination.map(dest => {
+//             return {
+//                 ...dest,distance: (dest.distance + Math.sqrt(2) * dest.distance) / 2
+//             }
+//         })
+//         return res.status(200).json(avgKM)
+//      }else{
+//         return res.status(200).json({message: "No destination Found"})
+//      }
+     
+//     }catch(e){
+//      next(e)
+//     }
+//  }
 
 exports.fetchDestinationByCategory = async(req,res,next)=>{
     try{

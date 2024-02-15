@@ -19,7 +19,8 @@ const Destination = mongoose.Schema({
     maxHeight: { type: String, required: ["maxHeight is required", true] },
     category: {type: mongoose.Types.ObjectId, ref:"Category", required: ["category is required", true] },
     views: {type: Number},
-    favouriteCount: {type: Number}
+    favouriteCount: {type: Number},
+    emergencyContact : [{type: String}]
 }, { timestamps: true })
 
 Destination.pre('save', async function(next) {

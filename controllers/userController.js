@@ -4,7 +4,7 @@ const {Destination} = require('../models/destination_model');
 
 exports.fetchUsers= async(req,res,next)=>{
     try {
-        const users = await User.find().sort({createdAt: -1}).select("fullName phone email imageUrl createdAt phoneNumber")
+        const users = await User.find().sort({createdAt: -1}).select("fullName phone email imageUrl createdAt phoneNumber role")
         return res.status(200).json(users)
     } catch (e) {
         console.log(e)
@@ -33,23 +33,6 @@ exports.create=async(req,res,next)=>{    try {
     next(e)
 }}
 
-// exports.editUser = async(req, res, next)=>{
-//     try{
-//         const userId = req.user.userId;
-//         //const userId = await User.findById(req.user.id)
-//         const updateFeilds = req.body;
-        
-//         const updatedUser = await User.findByIdAndUpdate(userId, {$set:updateFeilds}, {new: true});
-
-//         if(!updatedUser){
-//             return res.status(404).json({message: "User Not Found"});
-//         }
-//         return res.status(200).json(updatedUser);
-//     }
-//     catch(e){
-//         next(e);
-//     }
-// };
 
 exports.editUser = async (req, res, next) => {
     try {

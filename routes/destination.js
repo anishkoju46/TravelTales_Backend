@@ -4,6 +4,8 @@ const destinationController = require("../controllers/destinationController")
 const { auth, isAdmin } = require("../middlewares/authMiddle")
 // GET method on endpoint /users with paramater id /users/userId
 // to get detail of the user with specific id
+router.get("/near", destinationController.fetchDestinationNearBy)
+
 router.get("/:id",auth, destinationController.fetchOneDestination)
 
 //Get method on endpoint/ get destination on the basis of category
