@@ -19,6 +19,8 @@ exports.auth = (req,res,next)=>{
             req.user = decode
             //console.log(req.user)
         } catch (error) {
+            //indicates that the token has expired or invalid
+            //every request ma error 403
             return res.status(403).json({
                 success:false,
                 message: "invalid Token ⚠️"

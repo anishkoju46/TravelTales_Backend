@@ -14,6 +14,7 @@ router.get("/category/:id",auth, destinationController.fetchDestinationByCategor
 // GET method on endpoint /users to get all or list of users
 router.get("/",auth, destinationController.fetchDestinations)
 
+router.post("/search", auth, destinationController.searchDestinations)
 // PUT method on endpoint /users with paramater id /users/id
 // to update detail of the user with specific id
 // router.put("/:id",async(req,res,next)=>{
