@@ -1,4 +1,5 @@
 const {User} = require('../models/user_model');
+const {Destination} = require('../models/destination_model');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 //token le - kun user, and their role
@@ -6,7 +7,12 @@ const bcrypt = require("bcrypt");
 exports.login=async(req,res,next)=>{
     // console.log(req.body)
     const input = req.body
-    const user = await User.findOne({"email" : input.email}).populate("favourites", "_id name")
+    const user = await User.findOne({"email" : input.email})
+    .populate({
+        path: "favourites",
+        select: "_id name rating imageUrl maxHeight duration region itinerary bestSeason emergencyContact description",
+    });
+    //.populate("favourites", "_id name")
     if(user){
         if(!await bcrypt.compare(input.password, user.password))
             return res.status(403).json({"message": "Incorrect Credentials"})
@@ -15,6 +21,7 @@ exports.login=async(req,res,next)=>{
             let token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: "5d"})
 
         const {password, ...others} = user._doc
+        // console.log(others)
         return res.status(201).json({ ...others, token });
     }
     else{

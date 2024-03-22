@@ -21,14 +21,14 @@ router.put("/", auth, userController.editUser);
 // // POST method on endpoint /users to add a user
 router.post("/",auth, isAdmin, userController.create)
 
-router.post("/addToFavourites/:id", auth, userController.addToFavourites)
+// router.post("/addToFavourites/:id", auth, userController.addToFavourites)
 
 router.delete("/:id", auth, userController.deleteUser);
 
-router.delete('/removeFromFavourites/:id', auth, userController.removeFromFavourites);
+// router.delete('/removeFromFavourites/:id', auth, userController.removeFromFavourites);
 
 router.put('/toggleFavourite/:id', auth, userController.toggleFavourite);
 
-router.post('/changePassword', auth, userController.changePassword);
+router.put('/changePassword', auth, userController.changePassword);
 
 module.exports = router

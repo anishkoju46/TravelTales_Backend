@@ -191,7 +191,8 @@ exports.deleteUser = async (req, res, next) => {
       const destinationId = req.params.id;
   
       // Find the user by ID
-      const user = await User.findById(userId).populate("favourites", "_id name");
+      const user = await User.findById(userId)
+      //.populate("favourites", "_id name");
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -212,8 +213,8 @@ exports.deleteUser = async (req, res, next) => {
         // Save the updated user
         await user.save();
   
-        // return res.status(200).json(user);
-        return res.status(200).json({message: "Added To Favourites"})
+         return res.status(200).json({favourites : user.favourites});
+        //return res.status(200).json({message: "Added To Favourites"})
       } else {
         // If in favorites, remove it
         user.favourites.splice(indexToRemove, 1);
@@ -221,15 +222,14 @@ exports.deleteUser = async (req, res, next) => {
         // Save the updated user
         await user.save();
   
-        // return res.status(200).json(user);
-        return res.status(200).json({message: "Removed from Favourites"})
+        return res.status(200).json({favourites : user.favourites});
+        //return res.status(200).json({message: "Removed from Favourites"})
       }
     } catch (e) {
       next(e);
       console.error(e);
     }
   };
-  
   
   exports.changePassword = async (req, res, next) => {
     try {
@@ -248,6 +248,11 @@ exports.deleteUser = async (req, res, next) => {
         return res.status(401).json({ message: "Current password is incorrect" });
       }
   
+      // Check if the new password is different from the current password
+      if (currentPassword === newPassword) {
+        return res.status(400).json({ message: "New password must be different from the current password" });
+      }
+  
       // Hash the new password
       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
   
@@ -259,7 +264,63 @@ exports.deleteUser = async (req, res, next) => {
     } catch (e) {
       next(e);
     }
-  };
+};
+
+  
+  
+//   exports.changePassword = async (req, res, next) => {
+//     try {
+//       const userId = req.user.id;
+//       const { currentPassword, newPassword } = req.body;
+  
+//       // Find the user by ID
+//       const user = await User.findById(userId);
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
+  
+//       // Check if the current password provided is correct
+//       const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+//       if (!isPasswordValid) {
+//         return res.status(401).json({ message: "Current password is incorrect" });
+//       }
+  
+//       // Hash the new password
+//       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+  
+//       // Update the user's password
+//       user.password = hashedNewPassword;
+//       await user.save();
+  
+//       return res.status(200).json({ message: "Password changed successfully" });
+//     } catch (e) {
+//       next(e);
+//     }
+//   };
+
+  exports.fetchFavourites = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id).populate("favourites", "_id name")
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        // Extract therapistName from each favorite
+        const favoritesWithTherapistNames = user.favorites.map(favorite => {
+            return {
+                therapistId: favorite._id,
+                therapistName: favorite.user.fullName
+                // Add other fields you may need from the favorite
+            };
+        });
+        console.log(favoritesWithTherapistNames)
+        return res.status(200).json(favoritesWithTherapistNames)
+    }
+    catch (e) {
+        next(e)
+        console.log(e)
+    }
+}
 
 // exports.addToFavourites = async (req, res, next) => {
 //     try{
