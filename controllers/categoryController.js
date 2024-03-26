@@ -6,7 +6,7 @@ exports.fetchCategories= async(req,res,next)=>{
         const categories = await Category.find().populate("user", "_id fullName email")
         return res.status(200).json(categories)
     } catch (e) {
-        console.log(e)
+        // console.log(e)
         next(e)
     }
 };

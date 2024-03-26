@@ -7,6 +7,7 @@ const errorController = require("../controllers/errorController")
 app.use(compression())
 app.use(express.json())
 app.use(cors({ origin: "*" }))
+app.use('/uploads' ,express.static('uploads'))
 
 // auth endpoint
 app.use("/auth",require("../routes/auth"))
@@ -23,3 +24,8 @@ app.use("/categories",require("../routes/category"))
 app.use(errorController)
 
 module.exports = app
+
+
+// The use of app in the url.js file is to configure and assemble an instance of the Express
+// application by setting up middleware, defining routes, and handling errors, ultimately exporting
+// the configured Express application for use in other parts of the codebase.

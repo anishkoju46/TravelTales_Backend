@@ -31,4 +31,6 @@ router.put('/toggleFavourite/:id', auth, userController.toggleFavourite);
 
 router.put('/changePassword', auth, userController.changePassword);
 
+router.post('/uploadPicture', auth, userController.uploadPicture);
+
 module.exports = router
