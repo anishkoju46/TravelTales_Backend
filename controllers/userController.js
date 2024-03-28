@@ -5,6 +5,9 @@ const bcrypt = require("bcrypt");
 const formidable = require("formidable");
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
+const { promisify } = require('util');
+
 
 exports.fetchUsers= async(req,res,next)=>{
     try {
@@ -118,27 +121,71 @@ exports.deleteUser = async (req, res, next) => {
     }
 };
 
-// exports.uploadPicture = async(req, res, next) => {
-//   try{
-//     // const form = formidable({});
-//     const form = new formidable.IncomingForm();
+exports.uploadPicture = async (req, res, next) => {
+  try {
+      const form = new formidable.IncomingForm();
 
-//     form.parse(req, (err, fields, files) => {
-//       if (err) {
-//         console.log();
-//         next(err);
-//         return;
-//       }
-//       //res.json({ fields, files });
-//       res.status(200).json({fields, files})
-//       console.log(fields, files);
-//     });
-    
-//   }catch(e){
-//     console.log(e);
-//     next(e);
-//   }
-// }
+      // Specify the directory where uploaded files should be stored
+      const uploadDir = path.join('uploads');
+
+      // Check if the directory exists, create it if it doesn't
+      if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      form.uploadDir = uploadDir;
+
+      form.parse(req, async (err, fields, files) => {
+          if (err) {
+              next(err);
+              return;
+          }
+
+          const uploadedImage = files && files.image;
+
+          if (uploadedImage && uploadedImage.length > 0) {
+              const oldPath = uploadedImage[0].filepath;
+              const newFileName = uploadedImage[0].newFilename + '.jpg';
+              const newFilePath = path.join(uploadDir, newFileName);
+              console.log(` newfilepath : ${newFilePath}`)
+              // Compressing the image
+              await compressImage(oldPath, newFilePath);
+
+              // const fileSize = fs.statSync(newFilePath).size;
+
+
+              fs.rename(oldPath, newFilePath, async (err) => {
+                  if (err) {
+                      console.log(err)
+                      next(` rename wala error ${err}`)
+                  }
+                  try {
+
+
+                      // Update user's image URL and save user
+                      const userId = req.user.id;
+                      const user = await User.findById(userId);
+                      user.imageUrl = newFilePath;
+                      await user.save();
+
+                      res.status(200).json({ message: 'Image uploaded and compressed successfully.', filePath: newFilePath });
+                  }
+                  catch (error) {
+                      console.log(` catch :${error}`)
+                      next(error);
+                  }
+              })
+          } else {
+              res.status(400).json({ message: 'No image uploaded.' });
+          }
+      });
+  } catch (e) {
+      console.error(e);
+      next(e);
+  }
+}
+
+
 
 
 // exports.uploadPicture = async (req, res, next) => {
@@ -146,7 +193,7 @@ exports.deleteUser = async (req, res, next) => {
 //     const form = new formidable.IncomingForm();
 
 //     // Specify the directory where uploaded files should be stored
-//     const uploadDir = path.join(__dirname, 'uploads');
+//     const uploadDir = path.join('uploads');
 
 //     // Check if the directory exists, create it if it doesn't
 //     if (!fs.existsSync(uploadDir)) {
@@ -155,218 +202,187 @@ exports.deleteUser = async (req, res, next) => {
 
 //     form.uploadDir = uploadDir;
 
-//     form.parse(req, (err, fields, files) => {
+//     form.parse(req, async (err, fields, files) => {
 //       if (err) {
 //         next(err);
 //         return;
 //       }
+      
+//       const uploadedImage = files && files.image;
 
-//       // Handle the uploaded files here
+//       if (uploadedImage && uploadedImage.length > 0){
+//         const oldPath = uploadedImage[0].filepath;
+//         const newFileName = uploadedImage[0].newFilename + '.jpg';
+//         const newFilePath = path.join(uploadDir, newFileName);
 
-//       res.status(200).json({ fields, files });
+//         // Compressing the image
+//         await compressImage(oldPath, newFilePath);
+
+//         const fileSize = fs.statSync(newFilePath).size;
+
+//         if (fileSize > 1000000) { // Check if file size exceeds 1MB
+//           fs.unlinkSync(newFilePath); // Delete the file if it's too large
+//           return res.status(400).json({ message: 'Uploaded image cannot be compressed to less than 1MB.' });
+//         }
+
+//         // Update user's image URL and save user
+//         const userId = req.user.id;
+//         const user = await User.findById(userId);
+//         user.imageUrl = newFilePath;
+//         await user.save();
+
+//         res.status(200).json({ message: 'Image uploaded and compressed successfully.', filePath: newFilePath });
+//       } else {
+//         res.status(400).json({ message: 'No image uploaded.' });
+//       }
 //     });
 //   } catch (e) {
-//     console.log(e);
+//     console.error(e);
 //     next(e);
 //   }
 // }
 
-exports.uploadPicture = async (req, res, next) => {
-  try {
-    const form = new formidable.IncomingForm();
+async function compressImage(oldPath, newFilePath) {
+  let quality = 70; // Initial quality setting
+  let fileSize = fs.statSync(oldPath).size;
 
-    // Specify the directory where uploaded files should be stored
-    // const uploadDir = path.join(__dirname, '../uploads');
-    const uploadDir = path.join('uploads');
+  while (fileSize > 1000000 && quality > 10) {
+    // Reduce quality and compress the image
+    await sharp(oldPath)
+      .resize({ width: 800 }) // Adjust the width as needed
+      .jpeg({ quality: quality }) // Adjust quality as needed
+      .toFile(newFilePath);
 
-    // Check if the directory exists, create it if it doesn't
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // Check the size of the compressed image
+    fileSize = fs.statSync(newFilePath).size;
 
-    form.uploadDir = uploadDir;
-
-    form.parse(req, async (err, fields, files) => {
-      if (err) {
-        next(err);
-        return;
-      }
-      
-      const uploadedImage = files && files.image;
-
-      console.log(`files ${files}`)
-      console.log(`files.image ${files.image}`)
-      console.log(`uploaded image ${uploadedImage}`)
-      
-      if (uploadedImage && uploadedImage.length >0){
-          // Assuming there is only one file uploaded with the key 'image'
-          // const uploadedImage = files['image'];
-          
-          const oldPath = uploadedImage[0].filepath;
-          //new file path
-          // const newFilePath = path.join(uploadDir, uploadedImage[0].originalFilename) + 'jpg';
-          const newFilePath = path.join(uploadDir, uploadedImage[0].newFilename + '.jpg') ;
-
-          //moving the uploaded image to premanent location
-          fs.rename(oldPath, newFilePath, async (err) => {
-            if (err){
-                console.log(err)
-
-                next(err)
-            }
-
-              try {
-                  const userId = req.user.id;
-                  // Find the user by some identifier (e.g., user ID)
-                  const user = await User.findById(userId);
-
-                  // Update the image field inside userDetail
-                  user.imageUrl = newFilePath;
-
-                  // Save the user
-                  await user.save();
-
-                  res.status(200).json({ message: 'Image uploaded successfully.', filePath: newFilePath });
-              } catch (error) {
-                  next(error);
-              }
-          })
-      
-      }
-      else{
-        res.status(400).json({ message: 'No image uploaded.' });
-      }
-    });
-  } catch (e) {
-    console.log(e);
-    next(e);
+    // Decrease quality for the next iteration
+    quality -= 10;
   }
 }
 
 
-// exports.uploadPicture = async (req, res, next) => {
-
-//   try{
-//     const form = formidable.IncomingForm();
-
-//     const uploadFolder = path.join(__dirname, "public", "files");
-//     form.multiples = true;
-//     form.maxFileSize = 50 * 1024 * 1024; // 5MB
-//     form.uploadDir = uploadFolder;
-
-//     form.parse(req, async (err, fields, files) => {
-//       console.log(fields);
-//       console.log(files);
-//       if (err) {
-//         console.log("Error parsing the files");
-//         return res.status(400).json({
-//           status: "Fail",
-//           message: "There was an error parsing the files",
-//           error: err,
-//         });
-//       }
-
-//       if (!files.myFile.length) {
-//         //Single file
-      
-//         const file = files.myFile;
-      
-//         // checks if the file is valid
-//         const isValid = isFileValid(file);
-      
-//         // creates a valid name by removing spaces
-//         const fileName = encodeURIComponent(file.name.replace(/\s/g, "-"));
-      
-//         if (!isValid) {
-//           // throes error if file isn't valid
-//           return res.status(400).json({
-//             status: "Fail",
-//             message: "The file type is not a valid type",
-//           });
-//         }
-//         try {
-//           // renames the file in the directory
-//           fs.renameSync(file.path, join(uploadFolder, fileName));
-//         } catch (error) {
-//           console.log(error);
-//         }
-      
-//         try {
-//           // stores the fileName in the database
-//           const newFile = await File.create({
-//             name: `files/${fileName}`,
-//           });
-//           return res.status(200).json({
-//             status: "success",
-//             message: "File created successfully!!",
-//           });
-//         } catch (error) {
-//           res.json({
-//             error,
-//           });
-//         }
-//       } else {
-//         // Multiple files
-//       }
-
-//     });
-
-
-//   }catch(e){
-//     next(e);
-//   }
-// }
-
- 
-// exports.uploadPicture = async (req, res, next) => {
+// exports.uploadGallery = async (req, res, next) => {
 //   try {
-//     // const form = formidable({ multiples: true });
-//     const form = new formidable.IncomingForm();
-    
-//     // Parse the form data
-//     form.parse(req, async (err, fields, files) => {
-//       if (err) {
-//         next(err);
-//         return;
-//       }
+//       const form = new formidable.IncomingForm();
 
-//       // Assuming you're storing images in a directory named 'uploads'
-//       const uploadDir = path.join(__dirname, 'uploads');
+//       // Specify the directory where uploaded files should be stored
+//       const uploadDir = path.join('gallery');
 
-//       // Create the 'uploads' directory if it doesn't exist
+//       // Check if the directory exists, create it if it doesn't
 //       if (!fs.existsSync(uploadDir)) {
-//         fs.mkdirSync(uploadDir);
+//           fs.mkdirSync(uploadDir, { recursive: true });
 //       }
 
-//       // If the files object contains 'image' key
-//       if (files && files.image) {
-//         const oldPath = files.image.path;
-//         const extension = path.extname(files.image.name);
-//         const newFileName = `${Date.now()}${extension}`;
-//         const newPath = path.join(uploadDir, newFileName);
+//       form.uploadDir = uploadDir;
 
-//         // Move the uploaded file to the 'uploads' directory
-//         fs.renameSync(oldPath, newPath);
+//       form.parse(req, async (err, fields, files) => {
+//           if (err) {
+//               next(err);
+//               return;
+//           }
 
-//         // Update the user's imageUrl with the path of the uploaded image
-//         const user = await User.findById(req.userId); // Assuming you have userId available in the request
-//         if (user) {
-//           user.imageUrl = `/uploads/${newFileName}`; // Assuming you're storing relative paths
-//           await user.save();
-//         }
-//         console.log();
-//         return res.json({ success: true, message: 'Image uploaded successfully', imageUrl: `/uploads/${newFileName}` });
-//       } else {
-//         console.log();
-//         return res.status(400).json({ success: false, message: 'No image uploaded' });
-//       }
-//     });
+//           const uploadedImages = files && files.image;
 
+//           if (uploadedImages && uploadedImages.length > 0) {
+//               const imageUploadPromises = uploadedImages.map(async (image) => {
+//                   const oldPath = image.filepath;
+//                   const newFileName = image.newFilename + '.jpg';
+//                   const newFilePath = path.join(uploadDir, newFileName);
+//                   // Compressing the image
+//                   await compressImage(oldPath, newFilePath);
+//                   // Move the image to the gallery directory
+//                   await promisify(fs.rename)(oldPath, newFilePath);
+//                   return newFileName;
+//               });
+
+//               // Wait for all images to be uploaded and renamed
+//               const uploadedImageNames = await Promise.all(imageUploadPromises);
+
+
+//               fs.rename(oldPath, newFilePath, async (err) => {
+//                 if (err) {
+//                     console.log(err)
+//                     next(` rename wala error ${err}`)
+//                 }
+//                 try {
+//                   // Update user's gallery and save user
+//                 const userId = req.user.id;
+//                 const user = await User.findById(userId);
+//                 user.gallery = user.gallery.concat(uploadedImageNames);
+//                 await user.save();
+
+//                 res.status(200).json({ message: 'Images uploaded and added to gallery successfully.', fileNames: uploadedImageNames });
+//                 }
+//                 catch (error) {
+//                     console.log(` catch :${error}`)
+//                     next(error);
+//                 }
+//             })
+
+//           } else {
+//               res.status(400).json({ message: 'No images uploaded.' });
+//           }
+//       });
 //   } catch (error) {
-//     console.log(error);
-//     next(error);
+//       console.error(error);
+//       next(error);
 //   }
 // };
+
+exports.uploadGallery = async (req, res, next) => {
+  try {
+      const form = new formidable.IncomingForm();
+
+      // Specify the directory where uploaded files should be stored
+      const uploadDir = path.join('gallery');
+
+      // Check if the directory exists, create it if it doesn't
+      if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      form.uploadDir = uploadDir;
+
+      form.parse(req, async (err, fields, files) => {
+          if (err) {
+              next(err);
+              return;
+          }
+
+          const uploadedImages = files && files.image;
+
+          if (uploadedImages && uploadedImages.length > 0) {
+              const imageUploadPromises = uploadedImages.map(async (image) => {
+                  const oldPath = image.filepath;
+                  const newFileName = image.newFilename + '.jpg';
+                  const newFilePath = path.join(uploadDir, newFileName);
+                  // Compressing the image
+                  await compressImage(oldPath, newFilePath);
+                  // Move the image to the gallery directory
+                  await promisify(fs.rename)(oldPath, newFilePath);
+                  return path.join('gallery', newFileName); // Storing relative path
+              });
+
+              // Wait for all images to be uploaded and renamed
+              const relativeImagePaths = await Promise.all(imageUploadPromises);
+
+              // Update user's gallery and save user
+              const userId = req.user.id;
+              const user = await User.findById(userId);
+              user.gallery = user.gallery.concat(relativeImagePaths);
+              await user.save();
+
+              res.status(200).json({ message: 'Images uploaded and added to gallery successfully.', relativePaths: relativeImagePaths });
+          } else {
+              res.status(400).json({ message: 'No images uploaded.' });
+          }
+      });
+  } catch (error) {
+      console.error(error);
+      next(error);
+  }
+};
 
 
 

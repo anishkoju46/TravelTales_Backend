@@ -33,4 +33,6 @@ router.put('/changePassword', auth, userController.changePassword);
 
 router.post('/uploadPicture', auth, userController.uploadPicture);
 
+router.post('/uploadGallery', auth, userController.uploadGallery);
+
 module.exports = router

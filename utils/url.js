@@ -8,6 +8,7 @@ app.use(compression())
 app.use(express.json())
 app.use(cors({ origin: "*" }))
 app.use('/uploads' ,express.static('uploads'))
+app.use('/gallery' ,express.static('gallery'))
 
 // auth endpoint
 app.use("/auth",require("../routes/auth"))
