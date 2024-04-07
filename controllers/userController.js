@@ -185,8 +185,37 @@ exports.uploadPicture = async (req, res, next) => {
   }
 }
 
+exports.deletePicture = async (req, res, next) => {
+    try {
+        // Get the user ID from the request
+        const userId = req.user.id;
 
+        // Find the user by ID
+        const user = await User.findById(userId);
 
+        // Check if the user exists
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Check if the user already has an image URL
+        if (!user.imageUrl) {
+            return res.status(400).json({ message: "User's image URL not found." });
+        }
+
+        // Remove the image URL from the user document
+        user.imageUrl = '';
+
+        // Save the updated user document
+        await user.save();
+
+        // Respond with a success message
+        res.status(200).json({ message: "User's image URL deleted successfully." });
+    } catch (error) {
+        // If an error occurs, pass it to the error handling middleware
+        next(error);
+    }
+};
 
 // exports.uploadPicture = async (req, res, next) => {
 //   try {
@@ -384,7 +413,78 @@ exports.uploadGallery = async (req, res, next) => {
   }
 };
 
+exports.deleteImageFromGallery = async (req, res, next) => {
+    try {
+      const { imageUrl } = req.body;
+  
+      if (!imageUrl) {
+        return res.status(400).json({ message: 'Image URL is required.' });
+      }
 
+    //   imageUrl = imageUrl.replace(/\\/g, '\\\\');
+  
+      const userId = req.user.id;
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+  
+      const indexOfImage = user.gallery.indexOf(imageUrl);
+  
+      if (indexOfImage === -1) {
+        // Image URL not found in the gallery
+        return res.status(404).json({ message: 'Image not found in user\'s gallery.' });
+      }
+  
+      // Remove the image URL from the gallery array
+      user.gallery.splice(indexOfImage, 1);
+      await user.save();
+  
+      // Perform deletion operation here (if necessary)
+  
+      res.status(200).json({ message: 'Image deleted from user\'s gallery successfully.' });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  };
+
+// exports.deleteImageFromGallery = async (req, res, next) => {
+//     try {
+//       const { imageUrl } = req.body; // Assuming the image URL is sent in the request body
+  
+//       if (!imageUrl) {
+//         return res.status(400).json({ message: 'Image URL is required.' });
+//       }
+  
+//       const userId = req.user.id;
+//       const user = await User.findById(userId);
+  
+//       if (!user) {
+//         return res.status(404).json({ message: 'User not found.' });
+//       }
+  
+//       // Find the index of the image URL in the user's gallery
+//     //   const index = user.gallery.indexOf(imageUrl);
+//     const index = user.gallery.findIndex(imagePath => imagePath.endsWith(imageUrl));
+  
+//       if (index === -1) {
+//         return res.status(404).json({ message: 'Image not found in user\'s gallery.' });
+//       }
+  
+//       // Remove the image URL from the gallery array
+//       user.gallery.splice(index, 1);
+  
+//       // Save the updated user
+//       await user.save();
+  
+//       res.status(200).json({ message: 'Image deleted from user\'s gallery successfully.' });
+//     } catch (error) {
+//       console.error(error);
+//       next(error);
+//     }
+//   };
 
 // exports.addToFavourites = async (req, res, next) => {
 //   try {

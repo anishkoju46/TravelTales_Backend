@@ -35,4 +35,8 @@ router.post('/uploadPicture', auth, userController.uploadPicture);
 
 router.post('/uploadGallery', auth, userController.uploadGallery);
 
+router.put('/deletePicture', auth, userController.deletePicture);
+
+router.put('/deleteImageFromGallery', auth, userController.deleteImageFromGallery);
+
 module.exports = router

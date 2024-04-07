@@ -1,6 +1,10 @@
 const { populate } = require('dotenv');
 const {Destination} = require('../models/destination_model');
 const {User} = require('../models/user_model');
+const formidable = require('formidable');
+const fs = require('fs');
+const path = require('path');
+const { promisify } = require('util');
 
 exports.fetchDestinations= async(req,res,next)=>{
     try {
@@ -135,3 +139,79 @@ exports.searchDestinations = async (req, res, next) => {
         next(e);
     }
 };
+
+exports.addDestinationImage = async (req, res, next) => {
+    try {
+        const form = new formidable.IncomingForm();
+
+        // Specify the directory where uploaded files should be stored
+        const uploadDir = path.join('destination_images');
+
+        // Check if the directory exists, create it if it doesn't
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        form.uploadDir = uploadDir;
+
+        form.parse(req, async (err, fields, files) => {
+            if (err) {
+                next(err);
+                return;
+            }
+
+            const uploadedImage = files && files.image;
+
+            if(uploadedImage && uploadedImage.length >0){
+                const imageUploadPromises = uploadedImage.map(async (image) => {
+                    const oldPath = image.filepath;
+                    const newFileName = image.newFilename + '.jpg';
+                    const newFilePath = path.join(uploadDir, newFileName);
+                    // Compressing the image
+                    await compressImage(oldPath, newFilePath);
+                    // Move the image to the gallery directory
+                    await promisify(fs.rename)(oldPath, newFilePath);
+                    return path.join('destination_images', newFileName); // Storing relative path
+                });
+
+                const relativeImagePaths = await Promise.all(imageUploadPromises);
+                console.log(relativeImagePaths)
+
+                const destinationId = req.params.id; // Assuming destinationId is part of the URL
+                const destination = await Destination.findById(destinationId);
+                console.log(destination)
+                destination.imageUrl = destination.imageUrl.concat(relativeImagePaths);
+                console.log(destination.imageUrl)
+                await destination.save();
+
+                res.status(200).json({ message: 'Destination Images uploaded successfully.', relativePaths: relativeImagePaths });
+
+            }else {
+                res.status(400).json({ message: 'No image uploaded.' });
+            }
+
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};
+
+async function compressImage(oldPath, newFilePath) {
+    let quality = 70; // Initial quality setting
+    let fileSize = fs.statSync(oldPath).size;
+  
+    while (fileSize > 1000000 && quality > 10) {
+      // Reduce quality and compress the image
+      await sharp(oldPath)
+        .resize({ width: 800 }) // Adjust the width as needed
+        .jpeg({ quality: quality }) // Adjust quality as needed
+        .toFile(newFilePath);
+  
+      // Check the size of the compressed image
+      fileSize = fs.statSync(newFilePath).size;
+  
+      // Decrease quality for the next iteration
+      quality -= 10;
+    }
+  }
