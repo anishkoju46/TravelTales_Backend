@@ -111,22 +111,62 @@ exports.editReview = async (req, res, next) => {
     }
 };
 
-
-
 exports.deleteReview = async (req, res, next) => {
     try {
-        
         const reviewId = req.params.id;
 
+        // Find the review to be deleted
         const existingReview = await Review.findById(reviewId);
         if (!existingReview) {
             return res.status(404).json({ message: "Review Not Found" });
         }
 
-        const deletedReview = await Review.findByIdAndDelete(reviewId);
+        // Find the destination associated with the review
+        const destinationId = existingReview.destination;
+        const destination = await Destination.findById(destinationId);
+        if (!destination) {
+            return res.status(404).json({ message: "Destination Not Found" });
+        }
+
+        // Delete the review
+        await Review.findByIdAndDelete(reviewId);
+
+        // Fetch all reviews associated with the destination
+        const reviews = await Review.find({ destination: destinationId });
+
+        // Calculate the new rating based on the remaining reviews
+        let totalRating = 0;
+        if (reviews.length > 0) {
+            totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+            destination.rating = totalRating / reviews.length;
+        } else {
+            destination.rating = 0; // If no reviews left, set rating to 0
+        }
+
+        // Save the updated destination
+        await destination.save();
 
         return res.status(200).json({ message: "Review deleted successfully" });
-    } catch (e) {
-        next(e);
+    } catch (error) {
+        next(error);
     }
 };
+
+
+// exports.deleteReview = async (req, res, next) => {
+//     try {
+        
+//         const reviewId = req.params.id;
+
+//         const existingReview = await Review.findById(reviewId);
+//         if (!existingReview) {
+//             return res.status(404).json({ message: "Review Not Found" });
+//         }
+
+//         const deletedReview = await Review.findByIdAndDelete(reviewId);
+
+//         return res.status(200).json({ message: "Review deleted successfully" });
+//     } catch (e) {
+//         next(e);
+//     }
+// };

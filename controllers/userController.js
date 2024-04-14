@@ -443,7 +443,7 @@ exports.deleteImageFromGallery = async (req, res, next) => {
   
       // Perform deletion operation here (if necessary)
   
-      res.status(200).json({ message: 'Image deleted from user\'s gallery successfully.' });
+      res.status(200).json({message: 'Image deleted from user\'s gallery successfully.' });
     } catch (error) {
       console.error(error);
       next(error);

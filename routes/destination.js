@@ -30,4 +30,6 @@ router.delete("/:id",auth, isAdmin, destinationController.deleteDestination)
 
 router.post("/addDestinationImage/:id", auth, isAdmin, destinationController.addDestinationImage)
 
+router.put("/deleteDestinationImage/:id", auth, isAdmin, destinationController.deleteDestinationImage)
+
 module.exports = router

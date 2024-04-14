@@ -5,6 +5,7 @@ const formidable = require('formidable');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
+const sharp = require('sharp');
 
 exports.fetchDestinations= async(req,res,next)=>{
     try {
@@ -61,6 +62,7 @@ exports.fetchOneDestination=async(req,res,next)=>{
 
 exports.create=async(req,res,next)=>{    try {
     var destination = Destination(req.body)
+    console.log(req.body)
     await destination.save()
     //console.log(destination)
     const newDestination = await Destination.findById(destination._id.toString()).populate({path: "category", model: "Category",  select:{"_id":1, "name":1}})
@@ -215,3 +217,39 @@ async function compressImage(oldPath, newFilePath) {
       quality -= 10;
     }
   }
+
+  exports.deleteDestinationImage = async (req, res, next) => {
+    try {
+        const { imageUrl } = req.body; // Assuming imageUrl contains the URL of the image to be deleted
+
+        if (!imageUrl) {
+            return res.status(400).json({ message: 'Image URL is required.' });
+        }
+
+        const destinationId = req.params.id; // Get destination ID from request params
+
+        const destination = await Destination.findById(destinationId);
+        if (!destination) {
+            return res.status(404).json({ message: 'Destination not found.' });
+        }
+
+        const indexOfImage = destination.imageUrl.indexOf(imageUrl);
+
+        if (indexOfImage === -1) {
+            // Image URL not found in the destination's imageUrl array
+            return res.status(404).json({ message: 'Image not found in destination.' });
+        }
+
+        // Remove the image URL from the imageUrl array
+        destination.imageUrl.splice(indexOfImage, 1);
+        await destination.save();
+
+        // Perform deletion operation here (if necessary)
+        // For example, if the image is stored on disk, you can delete it using fs.unlink
+
+        res.status(200).json({ message: 'Image deleted from destination successfully.' });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+};

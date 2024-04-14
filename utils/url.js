@@ -9,7 +9,7 @@ app.use(express.json())
 app.use(cors({ origin: "*" }))
 app.use('/uploads' ,express.static('uploads'))
 app.use('/gallery' ,express.static('gallery'))
-app.use('/destination_image' ,express.static('destination_image'))
+app.use('/destination_images' ,express.static('destination_images'))
 
 // auth endpoint
 app.use("/auth",require("../routes/auth"))
@@ -21,6 +21,8 @@ app.use("/destinations",require("../routes/destination"))
 app.use("/reviews",require("../routes/review"))
 // category endpoint
 app.use("/categories",require("../routes/category"))
+//emgergency number endpoint
+app.use("/numbers",require("../routes/number"))
 
 
 app.use(errorController)

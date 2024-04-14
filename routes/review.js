@@ -1,7 +1,7 @@
 
 const router = require("express").Router()
 const reviewControler = require("../controllers/reviewController")
-const { auth } = require("../middlewares/authMiddle")
+const { auth, isAdmin } = require("../middlewares/authMiddle")
 // GET method on endpoint /users with paramater id /users/userId
 // to get detail of the user with specific id
 router.get("/:id",auth, reviewControler.fetchOneReview)
@@ -24,6 +24,6 @@ router.put("/:id", auth, reviewControler.editReview)
 // // POST method on endpoint /users to add a user
 router.post("/",auth, reviewControler.create)
 
-router.delete("/:id", auth, reviewControler.deleteReview)
+router.delete("/:id", auth, isAdmin, reviewControler.deleteReview)
 
 module.exports = router
