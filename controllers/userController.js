@@ -11,7 +11,7 @@ const { promisify } = require('util');
 
 exports.fetchUsers= async(req,res,next)=>{
     try {
-        const users = await User.find().sort({createdAt: -1}).select("fullName phone email imageUrl createdAt phoneNumber role")
+        const users = await User.find().sort({createdAt: -1}).select("fullName phone email imageUrl createdAt phoneNumber role block")
         return res.status(200).json(users)
     } catch (e) {
         console.log(e)
@@ -59,10 +59,10 @@ exports.editUser = async (req, res, next) => {
     }
 };
 
-//When a user gets deleted,
-    // All his reviews should be deleted.
-    // All his ratings should be deleted.
-    // All his fav should be deleted.
+// When a user gets deleted,
+//     All his reviews should be deleted.
+//     All his ratings should be deleted.
+//     All his fav should be deleted.
 
 exports.deleteUser = async (req, res, next) => {
     try {
@@ -120,6 +120,62 @@ exports.deleteUser = async (req, res, next) => {
         next(e);
     }
 };
+
+// exports.blockUser = async (req, res, next) => {
+//     try {
+//         // Get user ID from the authenticated user
+//         const userId = req.params.id;
+
+//         // Check if the user exists before attempting deletion
+//         const existingUser = await User.findById(userId);
+//         if (!existingUser) {
+//             return res.status(404).json({ message: "User Not Found" });
+//         }
+
+//         // Update the user's blocked status to true
+//         existingUser.block = true;
+
+//         // Save the updated user document
+//         await existingUser.save();
+
+//         // Optionally, you can handle the deletion of associated reviews and update therapist ratings here
+
+//         return res.status(200).json({ message: "User blocked successfully" });
+//     } catch (e) {
+//         // console.log(e)
+//         next(e);
+//     }
+// };
+
+exports.blockUser = async (req, res, next) => {
+  try {
+      // Get user ID from the request parameters
+      const userId = req.params.id;
+
+      // Check if the user exists
+      const existingUser = await User.findById(userId);
+      if (!existingUser) {
+          return res.status(404).json({ message: "User Not Found" });
+      }
+
+      // Toggle the user's block status
+      if (existingUser.block) {
+          // If user is blocked, unblock them
+          existingUser.block = false;
+          await existingUser.save();
+          return res.status(200).json({ message: "User unblocked successfully" });
+      } else {
+          // If user is not blocked, block them
+          existingUser.block = true;
+          await existingUser.save();
+          return res.status(200).json({ message: "User blocked successfully" });
+      }
+  } catch (e) {
+      // Pass any errors to the error handling middleware
+      next(e);
+  }
+};
+
 
 exports.uploadPicture = async (req, res, next) => {
   try {

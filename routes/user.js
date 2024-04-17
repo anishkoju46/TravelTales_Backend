@@ -23,6 +23,8 @@ router.post("/",auth, isAdmin, userController.create)
 
 // router.post("/addToFavourites/:id", auth, userController.addToFavourites)
 
+router.put("/blockUser/:id", auth, isAdmin, userController.blockUser);
+
 router.delete("/:id", auth, userController.deleteUser);
 
 // router.delete('/removeFromFavourites/:id', auth, userController.removeFromFavourites);

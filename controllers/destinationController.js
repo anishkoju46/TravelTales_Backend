@@ -16,7 +16,7 @@ exports.fetchDestinations= async(req,res,next)=>{
         
         return res.status(200).json(destinations)
     } catch (e) {
-        //console.log(e)
+        console.log(e)
         next(e)
     }
 };
@@ -38,7 +38,9 @@ exports.fetchDestinationByCategory = async(req,res,next)=>{
     try{
         const categoryId = req.params.id
         if(!categoryId)
-        return this.fetchDestinations()
+        return this.fetchDestinations(req, res, next)
+        if(categoryId == "6597ca81913765b12d9b8d94")
+        return this.fetchDestinations(req, res, next)
         const destinations = await Destination.find({"category": categoryId})
         .populate({path: "reviews", model: "Review", select: {"_id": 1, "review":1, "userId":1}, populate: {path:"userId", model:"User", select:{"_id":1, "fullName":1}}})
         .populate("category", "_id name")

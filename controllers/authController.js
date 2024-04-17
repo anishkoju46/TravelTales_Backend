@@ -14,6 +14,9 @@ exports.login=async(req,res,next)=>{
     });
     //.populate("favourites", "_id name")
     if(user){
+        if (user.block){
+            return res.status(403).json({"message": "User Blocked"})
+        }
         if(!await bcrypt.compare(input.password, user.password))
             return res.status(403).json({"message": "Incorrect Credentials"})
 
