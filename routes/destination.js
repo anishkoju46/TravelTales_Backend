@@ -1,7 +1,7 @@
 
 const router = require("express").Router()
 const destinationController = require("../controllers/destinationController")
-const { auth, isAdmin } = require("../middlewares/authMiddle")
+const { auth, isAdmin, isBlocked } = require("../middlewares/authMiddle")
 // GET method on endpoint /users with paramater id /users/userId
 // to get detail of the user with specific id
 router.get("/near", destinationController.fetchDestinationNearBy)

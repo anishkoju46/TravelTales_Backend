@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const sharp = require('sharp');
 const { promisify } = require('util');
+const { blockUnblockUser } = require('../utils/blockedUsers');
 
 
 exports.fetchUsers= async(req,res,next)=>{
@@ -163,11 +164,13 @@ exports.blockUser = async (req, res, next) => {
           // If user is blocked, unblock them
           existingUser.block = false;
           await existingUser.save();
+          blockUnblockUser(existingUser._id)
           return res.status(200).json({ message: "User unblocked successfully" });
       } else {
           // If user is not blocked, block them
           existingUser.block = true;
           await existingUser.save();
+          blockUnblockUser(existingUser._id)
           return res.status(200).json({ message: "User blocked successfully" });
       }
   } catch (e) {

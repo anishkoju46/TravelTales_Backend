@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const { isBlocked } = require('../utils/blockedUsers')
 require('dotenv').config()
 
 exports.auth = (req,res,next)=>{
@@ -55,4 +56,14 @@ exports.isAdmin = (req,res,next)=>{
             message: "Some error occured⚠️: "+error
         })
     }
+}
+
+exports.isBlocked = (req, res, next)=>{
+    if(isBlocked(req.user.id)){
+        return res.status(402).json({
+            success:false,
+            message: "Your Account has been blocked"
+        })
+    } 
+    next()
 }

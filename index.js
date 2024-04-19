@@ -6,6 +6,7 @@ const http = require("http")
 
 
 const app = require('./utils/url')
+const { initBlocked } = require("./utils/blockedUsers")
 dotenv.config()
 
 
@@ -24,4 +25,5 @@ var httpserver = http.createServer(app)
 
 httpserver.listen(process.env.PORT, function () {
     console.log("server started")
+    initBlocked()
 })
