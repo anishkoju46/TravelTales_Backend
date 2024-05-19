@@ -6,6 +6,7 @@ const handleDuplicateKeyError = (err, res) => {
     const error = `An account with that ${field} already exists.`;
     res.status(code).send({ message: error, fields: field });
 }
+
 const handleDuplicateMongoError = (err, res) => {
 
         // const field = Object.keys(err.keyValue);

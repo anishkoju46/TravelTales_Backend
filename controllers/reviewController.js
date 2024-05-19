@@ -25,37 +25,6 @@ exports.fetchOneReview=async(req,res,next)=>{
     }
 };
 
-// exports.create=async(req,res,next)=>{    try {
-//     var review = Review(req.body)
-//     await review.save()
-//     const createdReview = await Review.findById(review.id).populate("user", "_id fullName email imageUrl").populate("destination", "_id name")
-//     return res.status(201).json(createdReview)
-// } catch (e) {
-//     next(e)
-// }}
-
-// exports.create = async(req,res,next)=>{
-//     try{
-//         //check garnu paryo existing review: for same person and same destination.
-//         if(!req.body.user && !req.body.destination){
-//             return res.status(400).json({message: "Invalid Input"})
-//         }
-
-//         const existingReview = await Review.findOne({user: req.body.user, destination: req.body.destination});
-        
-//         if(existingReview){
-//             return res.status(400).json({message: "Your Review Already Exists"})
-//         }
-
-//         var review = Review(req.body)
-//             await review.save()
-//             const createdReview = await Review.findById(review.id).populate("user", "_id fullName email imageUrl").populate("destination", "_id name")
-//             return res.status(201).json(createdReview)
-
-//     }catch(e){
-//         next(e);
-//     }
-// }
 
 exports.create = async(req,res,next)=>{
     try{
@@ -151,22 +120,3 @@ exports.deleteReview = async (req, res, next) => {
         next(error);
     }
 };
-
-
-// exports.deleteReview = async (req, res, next) => {
-//     try {
-        
-//         const reviewId = req.params.id;
-
-//         const existingReview = await Review.findById(reviewId);
-//         if (!existingReview) {
-//             return res.status(404).json({ message: "Review Not Found" });
-//         }
-
-//         const deletedReview = await Review.findByIdAndDelete(reviewId);
-
-//         return res.status(200).json({ message: "Review deleted successfully" });
-//     } catch (e) {
-//         next(e);
-//     }
-// };

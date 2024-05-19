@@ -122,31 +122,6 @@ exports.deleteUser = async (req, res, next) => {
     }
 };
 
-// exports.blockUser = async (req, res, next) => {
-//     try {
-//         // Get user ID from the authenticated user
-//         const userId = req.params.id;
-
-//         // Check if the user exists before attempting deletion
-//         const existingUser = await User.findById(userId);
-//         if (!existingUser) {
-//             return res.status(404).json({ message: "User Not Found" });
-//         }
-
-//         // Update the user's blocked status to true
-//         existingUser.block = true;
-
-//         // Save the updated user document
-//         await existingUser.save();
-
-//         // Optionally, you can handle the deletion of associated reviews and update therapist ratings here
-
-//         return res.status(200).json({ message: "User blocked successfully" });
-//     } catch (e) {
-//         // console.log(e)
-//         next(e);
-//     }
-// };
 
 exports.blockUser = async (req, res, next) => {
   try {
@@ -276,59 +251,7 @@ exports.deletePicture = async (req, res, next) => {
     }
 };
 
-// exports.uploadPicture = async (req, res, next) => {
-//   try {
-//     const form = new formidable.IncomingForm();
 
-//     // Specify the directory where uploaded files should be stored
-//     const uploadDir = path.join('uploads');
-
-//     // Check if the directory exists, create it if it doesn't
-//     if (!fs.existsSync(uploadDir)) {
-//       fs.mkdirSync(uploadDir, { recursive: true });
-//     }
-
-//     form.uploadDir = uploadDir;
-
-//     form.parse(req, async (err, fields, files) => {
-//       if (err) {
-//         next(err);
-//         return;
-//       }
-      
-//       const uploadedImage = files && files.image;
-
-//       if (uploadedImage && uploadedImage.length > 0){
-//         const oldPath = uploadedImage[0].filepath;
-//         const newFileName = uploadedImage[0].newFilename + '.jpg';
-//         const newFilePath = path.join(uploadDir, newFileName);
-
-//         // Compressing the image
-//         await compressImage(oldPath, newFilePath);
-
-//         const fileSize = fs.statSync(newFilePath).size;
-
-//         if (fileSize > 1000000) { // Check if file size exceeds 1MB
-//           fs.unlinkSync(newFilePath); // Delete the file if it's too large
-//           return res.status(400).json({ message: 'Uploaded image cannot be compressed to less than 1MB.' });
-//         }
-
-//         // Update user's image URL and save user
-//         const userId = req.user.id;
-//         const user = await User.findById(userId);
-//         user.imageUrl = newFilePath;
-//         await user.save();
-
-//         res.status(200).json({ message: 'Image uploaded and compressed successfully.', filePath: newFilePath });
-//       } else {
-//         res.status(400).json({ message: 'No image uploaded.' });
-//       }
-//     });
-//   } catch (e) {
-//     console.error(e);
-//     next(e);
-//   }
-// }
 
 async function compressImage(oldPath, newFilePath) {
   let quality = 70; // Initial quality setting
@@ -349,74 +272,6 @@ async function compressImage(oldPath, newFilePath) {
   }
 }
 
-
-// exports.uploadGallery = async (req, res, next) => {
-//   try {
-//       const form = new formidable.IncomingForm();
-
-//       // Specify the directory where uploaded files should be stored
-//       const uploadDir = path.join('gallery');
-
-//       // Check if the directory exists, create it if it doesn't
-//       if (!fs.existsSync(uploadDir)) {
-//           fs.mkdirSync(uploadDir, { recursive: true });
-//       }
-
-//       form.uploadDir = uploadDir;
-
-//       form.parse(req, async (err, fields, files) => {
-//           if (err) {
-//               next(err);
-//               return;
-//           }
-
-//           const uploadedImages = files && files.image;
-
-//           if (uploadedImages && uploadedImages.length > 0) {
-//               const imageUploadPromises = uploadedImages.map(async (image) => {
-//                   const oldPath = image.filepath;
-//                   const newFileName = image.newFilename + '.jpg';
-//                   const newFilePath = path.join(uploadDir, newFileName);
-//                   // Compressing the image
-//                   await compressImage(oldPath, newFilePath);
-//                   // Move the image to the gallery directory
-//                   await promisify(fs.rename)(oldPath, newFilePath);
-//                   return newFileName;
-//               });
-
-//               // Wait for all images to be uploaded and renamed
-//               const uploadedImageNames = await Promise.all(imageUploadPromises);
-
-
-//               fs.rename(oldPath, newFilePath, async (err) => {
-//                 if (err) {
-//                     console.log(err)
-//                     next(` rename wala error ${err}`)
-//                 }
-//                 try {
-//                   // Update user's gallery and save user
-//                 const userId = req.user.id;
-//                 const user = await User.findById(userId);
-//                 user.gallery = user.gallery.concat(uploadedImageNames);
-//                 await user.save();
-
-//                 res.status(200).json({ message: 'Images uploaded and added to gallery successfully.', fileNames: uploadedImageNames });
-//                 }
-//                 catch (error) {
-//                     console.log(` catch :${error}`)
-//                     next(error);
-//                 }
-//             })
-
-//           } else {
-//               res.status(400).json({ message: 'No images uploaded.' });
-//           }
-//       });
-//   } catch (error) {
-//       console.error(error);
-//       next(error);
-//   }
-// };
 
 exports.uploadGallery = async (req, res, next) => {
   try {
@@ -509,111 +364,7 @@ exports.deleteImageFromGallery = async (req, res, next) => {
     }
   };
 
-// exports.deleteImageFromGallery = async (req, res, next) => {
-//     try {
-//       const { imageUrl } = req.body; // Assuming the image URL is sent in the request body
-  
-//       if (!imageUrl) {
-//         return res.status(400).json({ message: 'Image URL is required.' });
-//       }
-  
-//       const userId = req.user.id;
-//       const user = await User.findById(userId);
-  
-//       if (!user) {
-//         return res.status(404).json({ message: 'User not found.' });
-//       }
-  
-//       // Find the index of the image URL in the user's gallery
-//     //   const index = user.gallery.indexOf(imageUrl);
-//     const index = user.gallery.findIndex(imagePath => imagePath.endsWith(imageUrl));
-  
-//       if (index === -1) {
-//         return res.status(404).json({ message: 'Image not found in user\'s gallery.' });
-//       }
-  
-//       // Remove the image URL from the gallery array
-//       user.gallery.splice(index, 1);
-  
-//       // Save the updated user
-//       await user.save();
-  
-//       res.status(200).json({ message: 'Image deleted from user\'s gallery successfully.' });
-//     } catch (error) {
-//       console.error(error);
-//       next(error);
-//     }
-//   };
 
-// exports.addToFavourites = async (req, res, next) => {
-//   try {
-//     const userId = req.user.id;
-//     const destinationId = req.params.id;
-
-//     // Find the user by ID
-//     const user = await User.findById(userId).populate("favourites", "_id name")
-//     //.populate("favourites", "_id");
-//     if (!user) {
-//       return res.status(404).json({ message: "User not found" });
-//     }
-
-//     // Find the destination by ID
-//     const destination = await Destination.findById(destinationId);
-//     if (!destination) {
-//       return res.status(404).json({ message: "Destination not found" });
-//     }
-
-//     // Check if the destination is already in favorites
-//     if (user.favourites.some(fav => fav._id.equals(destinationId))) {
-//         return res.status(400).json({ message: "Destination already in favourites" });
-//       }
-//     // if (user.favourites.includes(destinationId)) {
-//     //   return res.status(400).json({ message: "Destination already in favourites" });
-//     // }
-
-//     // Add destination ID to user's favourites
-//     user.favourites.push(destinationId);
-
-//     // Save the updated user
-//     await user.save();
-
-//     return res.status(200).json(user);
-//     // return res.status(200).json({ message: "Destination added to favourites" });
-//   } catch (e) {
-//     next(e);
-//     console.error(e);
-//   }
-// };
-
-// exports.removeFromFavourites = async (req, res, next) => {
-//     try {
-//       const userId = req.user.id;
-//       const destinationId = req.params.id;
-  
-//       // Find the user by ID
-//       const user = await User.findById(userId).populate("favourites", "_id name");
-//       if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//       }
-  
-//       // Check if the destination is in the user's favorites
-//       const indexToRemove = user.favourites.findIndex(fav => fav._id.equals(destinationId));
-//       if (indexToRemove === -1) {
-//         return res.status(400).json({ message: "Destination not in favourites" });
-//       }
-  
-//       // Remove the destination from the user's favorites
-//       user.favourites.splice(indexToRemove, 1);
-  
-//       // Save the updated user
-//       await user.save();
-  
-//       return res.status(200).json(user);
-//     } catch (e) {
-//       next(e);
-//       console.error(e);
-//     }
-//   };
 
   exports.toggleFavourite = async (req, res, next) => {
     try {
@@ -696,37 +447,6 @@ exports.deleteImageFromGallery = async (req, res, next) => {
     }
 };
 
-  
-  
-//   exports.changePassword = async (req, res, next) => {
-//     try {
-//       const userId = req.user.id;
-//       const { currentPassword, newPassword } = req.body;
-  
-//       // Find the user by ID
-//       const user = await User.findById(userId);
-//       if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//       }
-  
-//       // Check if the current password provided is correct
-//       const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
-//       if (!isPasswordValid) {
-//         return res.status(401).json({ message: "Current password is incorrect" });
-//       }
-  
-//       // Hash the new password
-//       const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-  
-//       // Update the user's password
-//       user.password = hashedNewPassword;
-//       await user.save();
-  
-//       return res.status(200).json({ message: "Password changed successfully" });
-//     } catch (e) {
-//       next(e);
-//     }
-//   };
 
   exports.fetchFavourites = async (req, res, next) => {
     try {
@@ -751,71 +471,3 @@ exports.deleteImageFromGallery = async (req, res, next) => {
         console.log(e)
     }
 }
-
-// exports.addToFavourites = async (req, res, next) => {
-//     try{
-//         const userId = req.user.id
-//         const destinationId = req.params.id
-
-//         // console.log(destinationId)
-//         const user = await User.findById(userId);
-//         // console.log(user)
-//         if (!user){
-//             return res.status(404).json({message: "User not found"})
-//         }
-
-//         const destination = await Destination.findById(destinationId);
-//         if (!destination) {
-//             return res.status(404).json({ message: "Destination not found" });
-//         }
-
-//         if (user.favorites.includes(destinationId)){
-//             return res.status(400).json({message: "Destination already in favorites"})
-//         }
-
-//         user.favorites.push(destinationId);
-      
-//         await user.save();
-//         return res.status(200).json({message: "Destination added to favorites"})
-//     }
-//     catch(e){
-//         next(e)
-//         console.log(e)
-//     }
-// }
-
-// exports.addToFavourites = async (req, res, next) => {
-//     try{
-//         const userId = req.user.id; // Assuming you have authentication middleware to get the user ID from the request
-
-//         //Get the user
-//         const user = await User.findById(userId)
-
-//         if(!user){
-//             return res.status(404).json({message: "User Not found"})
-//         }
-
-//         const destinationId = req.body.destinationId
-
-//         //check if the destination exists
-//         const destination = await Destination.findById(destinationId)
-
-//         if(!destination){
-//             return res.status(404).json({message: "Destination Not Found - sorry"})
-//         }
-
-//         //checking if the destination already exists in the user's favourite
-//         if(user.favourites.includes(destinationId)){
-//             return res.status(400).json({message: "Destination already in Fav List"})
-//         }
-
-//         //add destination to the user's fav list
-//         user.favourites.push(destinationId)
-//         await user.save()
-
-//         return res.status(200).json({message: "Destination added to Fav List"})
-//     }
-//     catch(e){
-//         next(e);
-//     }
-// }
